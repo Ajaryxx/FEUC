@@ -16,7 +16,7 @@ void BaseModule::ParseArguments(const std::vector<std::string>& AcceptedUnits)
 {
 	if (m_args.size() < 2 || m_args.size() > 3)
 	{
-		std::cerr << "Invalid argument list. 2 or 3 arguments are expected." << std::endl;
+		std::cerr << "Invalid argument list. Use: [value] [from_unit] [to_unit]" << std::endl;
 		return;
 	}
 
@@ -34,7 +34,7 @@ void BaseModule::ParseArguments(const std::vector<std::string>& AcceptedUnits)
 	}
 
 	//We check if the units are valid and accepted
-	if (!CheckArgumentUnits(AcceptedUnits, ValueUnit, TargetUnit, errorMessage))
+	if (!CheckArguments(AcceptedUnits, Value, ValueUnit, TargetUnit, errorMessage))
 	{
 		std::cerr << errorMessage << std::endl;
 		return;
@@ -73,12 +73,17 @@ bool BaseModule::ParseArgumentLine(std::string& Value, std::string& ValueUnit, s
 		{
 			TargetUnit = m_args[2];
 		}
+		else
+		{
+			ErrorMessage = "Target unit must be defined.";
+			return false;
+		}
 	}
 	else
 	{
 		if (m_args.size() > 2)
 		{
-			ErrorMessage = "Invalid argument list. 2 or 3 arguments are expected.";
+			ErrorMessage = "Too many arguments. Use: [value] [from_unit] [to_unit]";
 			return false;
 		}
 		TargetUnit = m_args[1];
@@ -87,8 +92,13 @@ bool BaseModule::ParseArgumentLine(std::string& Value, std::string& ValueUnit, s
 	return true;
 }
 
-bool BaseModule::CheckArgumentUnits(const std::vector<std::string>& AcceptedUnits, const std::string& ValueUnit, const std::string& TargetUnit, std::string& ErrorMessage)
+bool BaseModule::CheckArguments(const std::vector<std::string>& AcceptedUnits, const std::string& Value, const std::string& ValueUnit, const std::string& TargetUnit, std::string& ErrorMessage)
 {
+	if (Value.empty())
+	{
+		ErrorMessage = "Value must be defined.";
+		return false;
+	}
 	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), ValueUnit) == AcceptedUnits.end())
 	{
 		ErrorMessage = "Invalid user unit: [" + ValueUnit + "]";

@@ -16,7 +16,7 @@ protected:
 private:
 
 	bool ParseArgumentLine(std::string& Value, std::string& ValueUnit, std::string& TargetUnit, std::string& ErrorMessage);
-	bool CheckArgumentUnits(const std::vector<std::string>& AcceptedUnits, const std::string& ValueUnit, const std::string& TargetUnit, std::string& ErrorMessage);
+	bool CheckArguments(const std::vector<std::string>& AcceptedUnits, const std::string& Value, const std::string& ValueUnit, const std::string& TargetUnit, std::string& ErrorMessage);
 
 	virtual void Output(const std::string& str) = 0;
 	std::vector<std::string> m_args;
