@@ -14,7 +14,7 @@ BaseModule::~BaseModule()
 
 void BaseModule::ParseArguments(const std::vector<std::string>& AcceptedUnits)
 {
-	if (m_args.size() < 2)
+	if (m_args.size() < 2 || m_args.size() > 3)
 	{
 		std::cerr << "Invalid argument list. 2 or 3 arguments are expected." << std::endl;
 		return;
@@ -26,11 +26,8 @@ void BaseModule::ParseArguments(const std::vector<std::string>& AcceptedUnits)
 
 	std::string errorMessage;
 
-	//We parse the value and unit from the first argument, which is expected to be in the format of "valueunit" (e.g., "10m", "5.5kg", etc.)
-	ParseUserValueUnit(Value, ValueUnit);
-	
-	//We check the units and assign the target unit from the second argument
-	if(!ParseUnits(ValueUnit, TargetUnit, errorMessage))
+	//We parse the arguments to extract the value, value unit, and target unit
+	if (!ParseArgumentLine(Value, ValueUnit, TargetUnit, errorMessage))
 	{
 		std::cerr << errorMessage << std::endl;
 		return;
@@ -44,7 +41,7 @@ void BaseModule::ParseArguments(const std::vector<std::string>& AcceptedUnits)
 	}
 	
 }
-void BaseModule::ParseUserValueUnit(std::string& Value, std::string& ValueUnit)
+bool BaseModule::ParseArgumentLine(std::string& Value, std::string& ValueUnit, std::string& TargetUnit, std::string& ErrorMessage)
 {
 	bool GotDecimal = false;
 
@@ -67,20 +64,14 @@ void BaseModule::ParseUserValueUnit(std::string& Value, std::string& ValueUnit)
 			break;
 		}
 	}
-}
-bool BaseModule::ParseUnits(std::string& ValueUnit, std::string& TargetUnit, std::string& ErrorMessage)
-{
+
 	if (ValueUnit.empty())
 	{
 		ValueUnit = m_args[1];
+
 		if (m_args.size() > 2)
 		{
 			TargetUnit = m_args[2];
-		}
-		else
-		{
-			ErrorMessage = "Invalid argument list. 2 or 3 arguments are expected.";
-			return false;
 		}
 	}
 	else
@@ -90,11 +81,12 @@ bool BaseModule::ParseUnits(std::string& ValueUnit, std::string& TargetUnit, std
 			ErrorMessage = "Invalid argument list. 2 or 3 arguments are expected.";
 			return false;
 		}
-		TargetUnit = *(m_args.end() - 1);
+		TargetUnit = m_args[1];
 	}
 
 	return true;
 }
+
 bool BaseModule::CheckArgumentUnits(const std::vector<std::string>& AcceptedUnits, const std::string& ValueUnit, const std::string& TargetUnit, std::string& ErrorMessage)
 {
 	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), ValueUnit) == AcceptedUnits.end())
