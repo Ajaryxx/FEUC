@@ -2,9 +2,7 @@
 #include "FEUC.hpp"
 
 #include "modules/HelpModule.hpp"
-
-bool FEUC::m_ErrorState = false;
-std::string FEUC::m_ErrString;
+#include "modules/LenghtModule.hpp"
 
 FEUC::FEUC(const std::vector<std::string>& args)
 {
@@ -17,36 +15,37 @@ FEUC::~FEUC()
 
 void FEUC::Run()
 {
-	Result result = GetModuleFromCMDL();
-	if (result.HasError())
-		std::cerr << result.GetErrorMessage() << std::endl;
+	std::unique_ptr<BaseModule> module = GetModuleFromCMDL();
 
+	if (module.get())
+	{
+		module->StartConvertUnit();
+	}
+	
 }
-Result FEUC::GetModuleFromCMDL()
+std::unique_ptr<BaseModule> FEUC::GetModuleFromCMDL()
 {
-	Result result {};
-	result.module = nullptr;
-
-	if (m_args.size() <= 1)
+	if (m_args.empty())
 	{
-		result.SetErrorMessage("No arguments found. Use [feuc help] for help.");
-		return result;	
+		std::cerr << "No module specified. Use 'help' for usage information." << std::endl;
+		return nullptr;
 	}
 
-	std::transform(m_args.begin(), m_args.end(), m_args.begin(), [&](std::string& str)
-		{ std::transform(str.begin(), str.end(), str.begin(), [&](unsigned char c)
-			{ return towlower(c); });
-	return str; });
-	
+	std::vector<std::string> moduleArgs(m_args.begin() + 1, m_args.end());
 
-	if (m_args[1] == "help")
+	if (m_args[0] == "help")
 	{
-		result.module = std::make_unique<HelpModule>();
-		return result;
+		return std::make_unique<HelpModule>(moduleArgs);
+	}
+	else if (m_args[0] == "length")
+	{
+		return std::make_unique<LenghtModule>(moduleArgs);
+	}
+	else
+	{
+		std::cerr << "Unknown module: [" << m_args[0] << "]. Use 'help' for usage information." << std::endl;
+		return nullptr;
 	}
 
-	
-	result.SetErrorMessage("Invalid module name: [" + m_args[1] + "]");
-	return result;
-			
+	return nullptr;
 }

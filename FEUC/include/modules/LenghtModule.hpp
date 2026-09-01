@@ -1,12 +1,12 @@
 #pragma once
 #include "modules/BaseModule.hpp"
 
-class HelpModule : public BaseModule
+class LenghtModule : public BaseModule
 {
 public:
-	HelpModule(const std::vector<std::string>& args);
-	~HelpModule();
-	
+	LenghtModule(const std::vector<std::string>& args);
+	~LenghtModule();
+
 private:
 	virtual void Output(const std::string& str) override;
 
