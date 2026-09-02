@@ -20,18 +20,19 @@ ParseResult BaseModule::ParseArguments(const std::vector<std::string>& AcceptedU
 
 	if (m_args.size() < 2 || m_args.size() > 3)
 	{
-		std::cerr << "Invalid argument list. Use: [value] [from_unit] [to_unit]" << std::endl;
+		std::cerr << "Invalid argument list. Use: [Value_And_Unit] [to_unit] [(Optional)Precision]" << std::endl;
 		return result;
 	}
 
 	std::string Value;
 	std::string FromUnit;
 	std::string ToUnit;
+	std::string Precision;
 
 	std::string errorMessage;
 
 	//We parse the arguments to extract the value, value unit, and target unit
-	if (!ParseArgumentLine(Value, FromUnit, ToUnit, errorMessage))
+	if (!ParseArgumentLine(Value, FromUnit, ToUnit, Precision, errorMessage))
 	{
 		std::cerr << errorMessage << std::endl;
 		return result;
@@ -47,12 +48,13 @@ ParseResult BaseModule::ParseArguments(const std::vector<std::string>& AcceptedU
 	result.Value = Value;
 	result.FromUnit = FromUnit;
 	result.ToUnit = ToUnit;
+	result.Precision = Precision;
 	result.ParseError = false;
 
 	return result;
 
 }
-bool BaseModule::ParseArgumentLine(std::string& Value, std::string& FromUnit, std::string& ToUnit, std::string& ErrorMessage)
+bool BaseModule::ParseArgumentLine(std::string& Value, std::string& FromUnit, std::string& ToUnit, std::string& Precision, std::string& ErrorMessage)
 {
 	bool GotDecimal = false;
 
@@ -76,28 +78,10 @@ bool BaseModule::ParseArgumentLine(std::string& Value, std::string& FromUnit, st
 		}
 	}
 
-	if (FromUnit.empty())
+	ToUnit = m_args[1];
+	if(m_args.size() > 2)
 	{
-		FromUnit = m_args[1];
-
-		if (m_args.size() > 2)
-		{
-			ToUnit = m_args[2];
-		}
-		else
-		{
-			ErrorMessage = "Target unit must be defined.";
-			return false;
-		}
-	}
-	else
-	{
-		if (m_args.size() > 2)
-		{
-			ErrorMessage = "Too many arguments. Use: [value] [from_unit] [to_unit]";
-			return false;
-		}
-		ToUnit = m_args[1];
+		Precision = m_args[2];
 	}
 
 	return true;

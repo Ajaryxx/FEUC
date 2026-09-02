@@ -43,7 +43,18 @@ void LenghtModule::StartConvertUnit()
 
 	LDouble finalValue = ConvertLength(convertedValue, result.FromUnit, result.ToUnit);
 
-	Output(StringUtils::FormatString("{} {} = {} {}", convertedValue, result.FromUnit, finalValue, result.ToUnit));
+	short prec = -1;
+	if (!result.Precision.empty())
+	{
+		prec = (short)StringUtils::StringToValue<int>(result.Precision, convErr);
+		if (convErr)
+		{
+			std::cerr << "Couldn't convert precision\n";
+			return;
+		}
+	}
+
+	Output(StringUtils::FormatString("{} {} = {} {}", convertedValue, result.FromUnit, StringUtils::ToString(finalValue, prec), result.ToUnit));
 }
 LDouble LenghtModule::ConvertLength(LDouble value, const std::string& fromUnit, const std::string& toUnit)
 {

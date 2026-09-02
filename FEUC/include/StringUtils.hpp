@@ -76,9 +76,81 @@ public:
 	static std::string ToString(bool value) { return value ? "true" : "false"; }
 	/*--------------------------------------------T*/
 
+	/*-------------StringToValue Functions-------------T*/
+	static int StringToInt(const std::string& str, bool& convertError)
+	{
+		int result = 0;
+		try
+		{
+			size_t offset = 0;
+			result = std::stoi(str, &offset);
+
+			if (offset != str.length())
+			{
+				std::cerr << "Couldn't convert string to int: " << str << std::endl;
+				convertError = true;
+			}
+		}
+		catch (const std::invalid_argument& arg)
+		{
+			std::cerr << arg.what() << std::endl;
+			convertError = true;
+		}
+		catch (const std::out_of_range& arg)
+		{
+			std::cerr << arg.what() << std::endl;
+			convertError = true;
+		}
+
+		return result;
+	}
+	static float StringToFloat(const std::string& str, bool& convertError)
+	{
+		float result = 0.f;
+		try
+		{
+			size_t offset = 0;
+			result = std::stof(str, &offset);
+
+			if (offset != str.length())
+			{
+				std::cerr << "Couldn't convert string to float: " << str << std::endl;
+				convertError = true;
+			}
+		}
+		catch (const std::invalid_argument& arg)
+		{
+			std::cerr << arg.what() << std::endl;
+			convertError = true;
+		}
+		catch (const std::out_of_range& arg)
+		{
+			std::cerr << arg.what() << std::endl;
+			convertError = true;
+		}
+
+		return result;
+	}
+	static bool StringToBool(const std::string& str, bool& convertError)
+	{
+		if (str == "true" || str == "1")
+			return true;
+		else if (str == "false" || str == "0")
+			return false;
+		else
+		{
+			std::cerr << "Couldn't convert string to bool: " << str << std::endl;
+			convertError = true;
+		}
+		return false;
+	}
+	/*--------------------------------------------*/
 
 	template<typename... Args>
 	static std::string FormatString(const std::string& str, Args... args);
+
+	template <typename T>
+	static T StringToValue(const std::string& str, bool& convertError);
 
 private:
 	template<typename T, typename... Args>
@@ -120,6 +192,30 @@ template<typename... Args>
 std::string StringUtils::FormatString(const std::string& str, Args... args)
 {
 	return StringUtils::ParseArguments(str, 0, args...);
+}
+
+template<typename T>
+inline T StringUtils::StringToValue(const std::string& str, bool& convertError)
+{
+	if constexpr (std::is_same_v<T, int>)
+	{
+		return StringToInt(str, convertError);
+	}
+	else if constexpr (std::is_same_v<T, float>)
+	{
+		return StringToFloat(str, convertError);
+	}
+	else if constexpr (std::is_same_v<T, bool>)
+	{
+		return StringToBool(str, convertError);
+	}
+	else
+	{
+		std::cerr << "Unsupported type for StringToValue conversion." << std::endl;
+		convertError = true;
+	}
+
+	return T{};
 }
 
 template<typename T, typename... Args>

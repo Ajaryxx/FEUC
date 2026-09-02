@@ -9,6 +9,7 @@ struct ParseResult
 	std::string Value;
 	std::string FromUnit;
 	std::string ToUnit;
+	std::string Precision;
 
 	bool ParseError = false;
 };
@@ -31,7 +32,7 @@ protected:
 
 private:
 
-	bool ParseArgumentLine(std::string& Value, std::string& FromUnit, std::string& ToUnit, std::string& ErrorMessage);
+	bool ParseArgumentLine(std::string& Value, std::string& FromUnit, std::string& ToUnit, std::string& Precision, std::string& ErrorMessage);
 	bool CheckArguments(const std::vector<std::string>& AcceptedUnits, const std::string& Value, const std::string& FromUnit, const std::string& ToUnit, std::string& ErrorMessage);
 
 	
