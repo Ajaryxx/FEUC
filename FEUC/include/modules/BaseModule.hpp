@@ -10,7 +10,7 @@ struct ParseResult
 	std::string FromUnit;
 	std::string ToUnit;
 
-	bool ParseError;
+	bool ParseError = false;
 };
 
 class BaseModule
@@ -27,14 +27,14 @@ protected:
 
 	template<typename T>
 	T ConvertValue(const std::string& value, bool& convertError);
-
+	virtual void Output(const std::string& str);
 
 private:
 
 	bool ParseArgumentLine(std::string& Value, std::string& FromUnit, std::string& ToUnit, std::string& ErrorMessage);
 	bool CheckArguments(const std::vector<std::string>& AcceptedUnits, const std::string& Value, const std::string& FromUnit, const std::string& ToUnit, std::string& ErrorMessage);
 
-	virtual void Output(const std::string& str) = 0;
+	
 	std::vector<std::string> m_args;
 };
 template<>

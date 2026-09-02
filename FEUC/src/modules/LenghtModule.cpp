@@ -1,6 +1,6 @@
 #include "PCH.hpp"
 #include "modules/LenghtModule.hpp"
-#include "StrOperations.hpp"
+#include "StringUtils.hpp"
 
 LenghtModule::LenghtModule(const std::vector<std::string>& args) : BaseModule(args)
 {
@@ -18,19 +18,12 @@ LenghtModule::LenghtModule(const std::vector<std::string>& args) : BaseModule(ar
 		{"yd", 0.9144},
 		{"mi", 1609.344},
 		}));
-
-	FormatString("Hallo {} und die Zahl {}", "C++", 5);
 }
 
 LenghtModule::~LenghtModule()
 {
 
 }
-void LenghtModule::Output(const std::string& str)
-{
-	std::cout << str << std::endl;
-}
-
 void LenghtModule::StartConvertUnit()
 {
 	ParseResult result = ParseArguments(AcceptedUnits);
@@ -49,9 +42,8 @@ void LenghtModule::StartConvertUnit()
 	}
 
 	LDouble finalValue = ConvertLength(convertedValue, result.FromUnit, result.ToUnit);
-	
-	//std::cout << convertedValue << " " << result.FromUnit << " = " << finalValue << " " << result.ToUnit << std::endl;
 
+	Output(StringUtils::FormatString("{} {} = {} {}", convertedValue, result.FromUnit, finalValue, result.ToUnit));
 }
 LDouble LenghtModule::ConvertLength(LDouble value, const std::string& fromUnit, const std::string& toUnit)
 {
@@ -81,10 +73,10 @@ void LenghtModule::AddUnits(const std::unordered_map<std::string, LDouble>& map)
 {
 	for (const auto& item : map)
 	{
-		std::string TLString = LowerStr(item.first);
+		std::string TLString = StringUtils::LowerStr(item.first);
 		if (unitConversionFactors.find(TLString) != unitConversionFactors.end())
 		{
-			assert(false && "Unit already exists.");
+			assert(false && StringUtils::FormatString("Unit already exists: {}", TLString).c_str());
 		}
 		else
 		{

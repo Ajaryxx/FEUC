@@ -8,8 +8,6 @@ public:
 	~LenghtModule();
 
 private:
-	virtual void Output(const std::string& str) override;
-
 
 	// Inherited via BaseModule
 	void StartConvertUnit() override;

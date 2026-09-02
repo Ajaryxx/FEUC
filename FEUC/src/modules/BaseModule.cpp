@@ -1,6 +1,6 @@
 #include "PCH.hpp"
 #include "modules/BaseModule.hpp"
-#include "StrOperations.hpp"
+#include "StringUtils.hpp"
 
 //MODULE ARG IGNORED!
 BaseModule::BaseModule(const std::vector<std::string>& args)
@@ -110,16 +110,21 @@ bool BaseModule::CheckArguments(const std::vector<std::string>& AcceptedUnits, c
 		ErrorMessage = "Value must be defined.";
 		return false;
 	}
-	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), LowerStr(FromUnit)) == AcceptedUnits.end())
+	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), StringUtils::LowerStr(FromUnit)) == AcceptedUnits.end())
 	{
 		ErrorMessage = "Invalid user unit: [" + FromUnit + "]";
 		return false;
 	}
-	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), LowerStr(ToUnit)) == AcceptedUnits.end())
+	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), StringUtils::LowerStr(ToUnit)) == AcceptedUnits.end())
 	{
 		ErrorMessage = "Invalid target unit: [" + ToUnit + "]";
 		return false;
 	}
 
 	return true;
+}
+
+void BaseModule::Output(const std::string& str)
+{
+	std::cout << str << std::endl;
 }
