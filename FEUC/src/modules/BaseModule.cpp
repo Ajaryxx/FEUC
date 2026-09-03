@@ -13,7 +13,7 @@ BaseModule::~BaseModule()
 
 }
 
-ParseResult BaseModule::ParseArguments(const std::vector<std::string>& AcceptedUnits)
+ParseResult BaseModule::StartParseArguments()
 {
 	ParseResult result;
 	result.ParseError = true;
@@ -39,7 +39,7 @@ ParseResult BaseModule::ParseArguments(const std::vector<std::string>& AcceptedU
 	}
 
 	//We check if the units are valid and accepted
-	if (!CheckArguments(AcceptedUnits, Value, FromUnit, ToUnit, errorMessage))
+	if (!CheckArguments(Value, FromUnit, ToUnit, errorMessage))
 	{
 		std::cerr << errorMessage << std::endl;
 		return result;
@@ -87,7 +87,7 @@ bool BaseModule::ParseArgumentLine(std::string& Value, std::string& FromUnit, st
 	return true;
 }
 
-bool BaseModule::CheckArguments(const std::vector<std::string>& AcceptedUnits, const std::string& Value, const std::string& FromUnit, const std::string& ToUnit, std::string& ErrorMessage)
+bool BaseModule::CheckArguments(const std::string& Value, const std::string& FromUnit, const std::string& ToUnit, std::string& ErrorMessage)
 {
 	if (Value.empty())
 	{
@@ -111,4 +111,36 @@ bool BaseModule::CheckArguments(const std::vector<std::string>& AcceptedUnits, c
 void BaseModule::Output(const std::string& str)
 {
 	std::cout << str << std::endl;
+}
+void BaseModule::AddUnits(const std::unordered_map<std::string, LDouble>& map)
+{
+	for (const auto& item : map)
+	{
+		std::string TLString = StringUtils::LowerStr(item.first);
+		if (unitConversionFactors.find(TLString) != unitConversionFactors.end())
+		{
+			assert(false && StringUtils::FormatString("Unit already exists: {}", TLString).c_str());
+		}
+		else
+		{
+			unitConversionFactors[TLString] = item.second;
+			AcceptedUnits.push_back(TLString);
+		}
+
+	}
+}
+LDouble BaseModule::GetUnitFactor(const std::string& unit, bool& err) const
+{
+	auto it = unitConversionFactors.find(StringUtils::LowerStr(unit));
+	if (it != unitConversionFactors.end())
+	{
+		err = false;
+		return it->second;
+	}
+	else
+	{
+		std::cerr << StringUtils::FormatString("Couldn't find unit: [{}]", unit);
+		err = true;
+	}
+	return 0.f;
 }

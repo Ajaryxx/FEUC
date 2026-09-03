@@ -26,7 +26,7 @@ LenghtModule::~LenghtModule()
 }
 void LenghtModule::StartConvertUnit()
 {
-	ParseResult result = ParseArguments(AcceptedUnits);
+	ParseResult result = StartParseArguments();
 	if (result.ParseError)
 	{
 		std::cerr << "Error parsing arguments.\n";
@@ -34,7 +34,7 @@ void LenghtModule::StartConvertUnit()
 	}
 	bool convErr;
 
-	LDouble convertedValue = ConvertValue<LDouble>(result.Value, convErr);
+	LDouble convertedValue = StringUtils::StringToValue<LDouble>(result.Value, convErr);
 	if (convErr)
 	{
 		std::cerr << "Couldn't convert value\n";
@@ -64,36 +64,26 @@ LDouble LenghtModule::ConvertLength(LDouble value, const std::string& fromUnit, 
 }
 LDouble LenghtModule::ToMeters(LDouble value, const std::string& fromUnit)
 {
-	auto it = unitConversionFactors.find(fromUnit);
-	if (it != unitConversionFactors.end())
+	bool err;
+	
+	LDouble factor = GetUnitFactor(fromUnit, err);
+	if (err)
 	{
-		return value * it->second;
+		std::cerr << "Couldn't convert to meters\n";
+		return 0.f;
 	}
-	return 0.0f;
+	return value * factor;
+
 }
 LDouble LenghtModule::FromMeters(LDouble value, const std::string& toUnit)
 {
-	auto it = unitConversionFactors.find(toUnit);
-	if (it != unitConversionFactors.end())
+	bool err;
+	LDouble factor = GetUnitFactor(toUnit, err);
+
+	if (err)
 	{
-		return value / it->second;
+		std::cerr << "Couldn't convert to meters\n";
+		return 0.f;
 	}
-	return 0.0f;
-}
-void LenghtModule::AddUnits(const std::unordered_map<std::string, LDouble>& map)
-{
-	for (const auto& item : map)
-	{
-		std::string TLString = StringUtils::LowerStr(item.first);
-		if (unitConversionFactors.find(TLString) != unitConversionFactors.end())
-		{
-			assert(false && StringUtils::FormatString("Unit already exists: {}", TLString).c_str());
-		}
-		else
-		{
-			unitConversionFactors[TLString] = item.second;
-			AcceptedUnits.push_back(TLString);
-		}
-		
-	}
+	return value / factor;
 }

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cctype>
+#include <type_traits>
 
 class StringUtils
 {
@@ -74,36 +75,23 @@ public:
 
 	//Boolean format
 	static std::string ToString(bool value) { return value ? "true" : "false"; }
+
 	/*--------------------------------------------T*/
 
+
+	template<typename... Args>
+	static std::string FormatString(const std::string& str, Args&&... args);
+
+	template <typename T>
+	static T StringToValue(const std::string& str, bool& convertError);
+
+private:
 	/*-------------StringToValue Functions-------------T*/
-	static int StringToInt(const std::string& str, bool& convertError)
-	{
-		int result = 0;
-		try
-		{
-			size_t offset = 0;
-			result = std::stoi(str, &offset);
+	template<typename T>
+	static T StringToInt(const std::string& str, bool& convertError);
+	template<typename T>
+	static T StringToFloat(const std::string& str, bool& convertError);
 
-			if (offset != str.length())
-			{
-				std::cerr << "Couldn't convert string to int: " << str << std::endl;
-				convertError = true;
-			}
-		}
-		catch (const std::invalid_argument& arg)
-		{
-			std::cerr << arg.what() << std::endl;
-			convertError = true;
-		}
-		catch (const std::out_of_range& arg)
-		{
-			std::cerr << arg.what() << std::endl;
-			convertError = true;
-		}
-
-		return result;
-	}
 	static float StringToFloat(const std::string& str, bool& convertError)
 	{
 		float result = 0.f;
@@ -146,16 +134,7 @@ public:
 	}
 	/*--------------------------------------------*/
 
-	template<typename... Args>
-	static std::string FormatString(const std::string& str, Args... args);
-
-	template <typename T>
-	static T StringToValue(const std::string& str, bool& convertError);
-
 private:
-	template<typename T, typename... Args>
-	static std::string ParseArguments(const std::string& str, size_t offset, T arg, Args... args);
-
 	static std::string ParseArguments(const std::string& str, size_t offset)
 	{
 		return str;
@@ -189,23 +168,38 @@ private:
 
 };
 template<typename... Args>
-std::string StringUtils::FormatString(const std::string& str, Args... args)
+std::string StringUtils::FormatString(const std::string& str, Args&&... args)
 {
-	return StringUtils::ParseArguments(str, 0, args...);
+	std::string result = str;
+	size_t offset = 0;
+
+	auto replace = [&](auto&& arg)
+		{
+			size_t i = result.find("{}", offset);
+			if (i != std::string::npos)
+			{
+				std::string replacement = ToString(arg);
+				result.replace(i, 2, replacement);
+				offset = i + replacement.length();
+			}
+		};
+	(replace(std::forward<Args>(args)), ...);
+	
+	return result;
 }
 
 template<typename T>
 inline T StringUtils::StringToValue(const std::string& str, bool& convertError)
 {
-	if constexpr (std::is_same_v<T, int>)
+	if (std::is_integral_v<T>)
 	{
-		return StringToInt(str, convertError);
+		return StringToInt<T>(str, convertError);
 	}
-	else if constexpr (std::is_same_v<T, float>)
+	else if (std::is_floating_point_v<T>)
 	{
-		return StringToFloat(str, convertError);
+		return StringToFloat<T>(str, convertError);
 	}
-	else if constexpr (std::is_same_v<T, bool>)
+	else if (std::is_same_v<T, bool>)
 	{
 		return StringToBool(str, convertError);
 	}
@@ -217,20 +211,132 @@ inline T StringUtils::StringToValue(const std::string& str, bool& convertError)
 
 	return T{};
 }
-
-template<typename T, typename... Args>
-std::string StringUtils::ParseArguments(const std::string& str, size_t offset, T arg, Args... args)
+template<typename T>
+inline T StringUtils::StringToInt(const std::string& str, bool& convertError)
 {
-	std::string result = str;
-	size_t i = result.find("{}", offset);
+	size_t offset = 0;
+	T result = T{};
+	convertError = false;
 
-	if (i != std::string::npos)
+	try
 	{
-		std::string replacement = ToString(arg);
-		result.replace(i, 2, replacement);
+		if constexpr(std::is_same_v<T, short>)
+		{
+			result = static_cast<short>(std::stoi(str, &offset));
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to short: [{}]", str);
+				convertError = true;
+			}
+		}
+		else if constexpr (std::is_same_v<T, int>)
+		{
+			result = std::stoi(str, &offset);
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to int: [{}]", str);
+				convertError = true;
+			}
+		}
+		else if constexpr (std::is_same_v<T, long>)
+		{
+			result = std::stol(str, &offset);
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to long: [{}]", str);
+				convertError = true;
+			}
+		}
+		else if constexpr (std::is_same_v<T, long long>)
+		{
+			result = std::stoll(str, &offset);
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to long long: [{}]", str);
+				convertError = true;
+			}
+		}
+		else
+		{
+			std::cerr << StringUtils::FormatString("No conversation support for type: {}", typeid(T).name());
+			convertError = true;
+		}
 
-		offset = i + replacement.length();
-		return ParseArguments(result, offset, args...);
 	}
+	catch (const std::invalid_argument& err)
+	{
+		std::cerr << err.what() << std::endl;
+		convertError = true;
+	}
+	catch (const std::out_of_range& err)
+	{
+		std::cerr << err.what() << std::endl;
+		convertError = true;
+	}
+	
+	//In case there is junk data
+	if (convertError)
+		result = T{};
+
+	return result;
+}
+template<typename T>
+inline T StringUtils::StringToFloat(const std::string& str, bool& convertError)
+{
+	size_t offset = 0;
+	T result = T{};
+	convertError = false;
+
+	try
+	{
+		if constexpr (std::is_same_v<T, float>)
+		{
+			result = std::stof(str, &offset);
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to short: [{}]", str);
+				convertError = true;
+			}
+		}
+		else if constexpr (std::is_same_v<T, double>)
+		{
+			result = std::stod(str, &offset);
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to int: [{}]", str);
+				convertError = true;
+			}
+		}
+		else if constexpr (std::is_same_v<T, long double>)
+		{
+			result = std::stold(str, &offset);
+			if (offset != str.length())
+			{
+				std::cerr << StringUtils::FormatString("Couldn't convert string to long: [{}]", str);
+				convertError = true;
+			}
+		}
+		else
+		{
+			std::cerr << StringUtils::FormatString("No conversation support for type: {}", typeid(T).name());
+			convertError = true;
+		}
+
+	}
+	catch (const std::invalid_argument& err)
+	{
+		std::cerr << err.what() << std::endl;
+		convertError = true;
+	}
+	catch (const std::out_of_range& err)
+	{
+		std::cerr << err.what() << std::endl;
+		convertError = true;
+	}
+
+	//In case there is junk data
+	if (convertError)
+		result = T{};
+
 	return result;
 }

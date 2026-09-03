@@ -5,7 +5,7 @@ set(TOOL_EXE "FEUC")
 add_executable(${TOOL_EXE} "src/main.cpp" "src/FEUC.cpp")
 
 set_target_properties(${TOOL_EXE} PROPERTIES
-CXX_STANDARD 11
+CXX_STANDARD 17
 CXX_STANDARD_REQUIRED ON
 CXX_EXTENSIONS OFF)
 
