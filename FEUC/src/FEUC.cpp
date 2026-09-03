@@ -1,8 +1,10 @@
 #include "PCH.hpp"
 #include "FEUC.hpp"
+#include "StringUtils.hpp"
 
 #include "modules/HelpModule.hpp"
-#include "modules/LenghtModule.hpp"
+#include "modules/MeasureUnitModule.hpp"
+#include "modules/DataUnitModule.hpp"
 
 FEUC::FEUC(const std::vector<std::string>& args)
 {
@@ -32,19 +34,23 @@ std::unique_ptr<BaseModule> FEUC::GetModuleFromCMDL()
 	}
 
 	std::vector<std::string> moduleArgs(m_args.begin() + 1, m_args.end());
+	std::string moduleName = StringUtils::LowerStr(m_args[0]);
 
-	if (m_args[0] == "help")
+	if (moduleName == "help")
 	{
 		return std::make_unique<HelpModule>(moduleArgs);
 	}
-	else if (m_args[0] == "length")
+	else if (moduleName == "length")
 	{
-		return std::make_unique<LenghtModule>(moduleArgs);
+		return std::make_unique<MeasureUnitModule>(moduleArgs);
+	}
+	else if (moduleName == "data")
+	{
+		return std::make_unique<DataUnitModule>(moduleArgs);
 	}
 	else
 	{
-		std::cerr << "Unknown module: [" << m_args[0] << "]. Use 'help' for usage information." << std::endl;
-		return nullptr;
+		std::cerr << StringUtils::FormatString("Unknown module: [{}]. Use 'help' for usage information.", moduleName) << std::endl;
 	}
 
 	return nullptr;

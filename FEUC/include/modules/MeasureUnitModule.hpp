@@ -1,11 +1,11 @@
 #pragma once
 #include "modules/BaseModule.hpp"
 
-class LenghtModule : public BaseModule
+class MeasureUnitModule : public BaseModule
 {
 public:
-	LenghtModule(const std::vector<std::string>& args);
-	~LenghtModule();
+	MeasureUnitModule(const std::vector<std::string>& args);
+	~MeasureUnitModule();
 
 private:
 

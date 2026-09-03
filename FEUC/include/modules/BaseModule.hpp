@@ -1,7 +1,6 @@
 #pragma once
 
 using LDouble = long double;
-using LLong = long long;
 
 struct ParseResult
 {

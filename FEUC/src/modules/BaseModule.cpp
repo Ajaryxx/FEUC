@@ -96,12 +96,20 @@ bool BaseModule::CheckArguments(const std::string& Value, const std::string& Fro
 	}
 	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), StringUtils::LowerStr(FromUnit)) == AcceptedUnits.end())
 	{
-		ErrorMessage = "Invalid user unit: [" + FromUnit + "]";
+		if (FromUnit.empty())
+			ErrorMessage = "Value unit must be defined.";
+		else
+			ErrorMessage = "Invalid user unit: [" + FromUnit + "]";
+
 		return false;
 	}
 	if (std::find(AcceptedUnits.begin(), AcceptedUnits.end(), StringUtils::LowerStr(ToUnit)) == AcceptedUnits.end())
 	{
-		ErrorMessage = "Invalid target unit: [" + ToUnit + "]";
+		if (ToUnit.empty())
+			ErrorMessage = "Target unit must be defined.";
+		else
+			ErrorMessage = "Invalid target unit: [" + ToUnit + "]";
+
 		return false;
 	}
 
@@ -123,6 +131,8 @@ void BaseModule::AddUnits(const std::unordered_map<std::string, LDouble>& map)
 		}
 		else
 		{
+			assert(item.second > 0 && StringUtils::FormatString("Unit conversion factor must be greater than zero: {} = {}", TLString, item.second).c_str());
+
 			unitConversionFactors[TLString] = item.second;
 			AcceptedUnits.push_back(TLString);
 		}

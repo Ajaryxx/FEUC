@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+#include <utility>
 #include <string>
 #include <algorithm>
 #include <cmath>
@@ -50,7 +52,7 @@ public:
 	//Floating point format
 	static std::string ToString(float value, short decimalPlaces = -1) 
 	{ 
-		if (decimalPlaces != -1)
+		if (decimalPlaces > -1)
 		{
 			return PopBackZeros(std::to_string(RoundToDecimalPlaces(value, decimalPlaces)));
 		}
@@ -58,7 +60,7 @@ public:
 	}
 	static std::string ToString(double value, short decimalPlaces = -1) 
 	{ 
-		if (decimalPlaces != -1)
+		if (decimalPlaces > -1)
 		{
 			return PopBackZeros(std::to_string(RoundToDecimalPlaces(value, decimalPlaces)));
 		}
@@ -66,7 +68,7 @@ public:
 	}
 	static std::string ToString(long double value, short decimalPlaces = -1) 
 	{ 
-		if (decimalPlaces != -1)
+		if (decimalPlaces > -1)
 		{
 			return PopBackZeros(std::to_string(RoundToDecimalPlaces(value, decimalPlaces)));
 		}
@@ -77,7 +79,6 @@ public:
 	static std::string ToString(bool value) { return value ? "true" : "false"; }
 
 	/*--------------------------------------------T*/
-
 
 	template<typename... Args>
 	static std::string FormatString(const std::string& str, Args&&... args);
@@ -92,33 +93,6 @@ private:
 	template<typename T>
 	static T StringToFloat(const std::string& str, bool& convertError);
 
-	static float StringToFloat(const std::string& str, bool& convertError)
-	{
-		float result = 0.f;
-		try
-		{
-			size_t offset = 0;
-			result = std::stof(str, &offset);
-
-			if (offset != str.length())
-			{
-				std::cerr << "Couldn't convert string to float: " << str << std::endl;
-				convertError = true;
-			}
-		}
-		catch (const std::invalid_argument& arg)
-		{
-			std::cerr << arg.what() << std::endl;
-			convertError = true;
-		}
-		catch (const std::out_of_range& arg)
-		{
-			std::cerr << arg.what() << std::endl;
-			convertError = true;
-		}
-
-		return result;
-	}
 	static bool StringToBool(const std::string& str, bool& convertError)
 	{
 		if (str == "true" || str == "1")
@@ -135,11 +109,6 @@ private:
 	/*--------------------------------------------*/
 
 private:
-	static std::string ParseArguments(const std::string& str, size_t offset)
-	{
-		return str;
-	}
-
 	static std::string PopBackZeros(const std::string& str)
 	{
 		if (str.empty())
@@ -191,17 +160,17 @@ std::string StringUtils::FormatString(const std::string& str, Args&&... args)
 template<typename T>
 inline T StringUtils::StringToValue(const std::string& str, bool& convertError)
 {
-	if (std::is_integral_v<T>)
+	if constexpr (std::is_same_v<T, bool>)
+	{
+		return StringToBool(str, convertError);
+	}
+	else if constexpr (std::is_integral_v<T>)
 	{
 		return StringToInt<T>(str, convertError);
 	}
-	else if (std::is_floating_point_v<T>)
+	else if constexpr (std::is_floating_point_v<T>)
 	{
 		return StringToFloat<T>(str, convertError);
-	}
-	else if (std::is_same_v<T, bool>)
-	{
-		return StringToBool(str, convertError);
 	}
 	else
 	{
@@ -337,6 +306,9 @@ inline T StringUtils::StringToFloat(const std::string& str, bool& convertError)
 	//In case there is junk data
 	if (convertError)
 		result = T{};
+
+	if (result >= 999999999999999999.L)
+		std::cerr << "WARNING: Bigger floating point values may lose precision!" << std::endl;
 
 	return result;
 }
